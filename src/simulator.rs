@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use petgraph::prelude::*;
 
-use crate::components::{Component, Wire};
+use crate::components::{Component, Wire, Signal};
 
 type ComponentIndex = NodeIndex;
 type WireIndex = EdgeIndex;
@@ -35,30 +35,97 @@ impl Simulator {
         self.graph.add_edge(component0, component1, wire)
     }
 
+    pub fn set_input(&mut self, node: ComponentIndex, value: Signal) {
+        let component = self.graph.node_weight_mut(node)
+            .expect("Node must exist");
+
+        match component {
+            Component::Logic(_) => panic!("Stupid user lul"),
+            Component::Input(input) => {
+                if input.get_value() != value {
+                    input.set_value(value);
+                    self.events.push_back(Event {
+                        component: node,
+                        output: 0
+                    });
+                }
+            },
+        }
+    }
+
     pub fn step(&mut self) {
 
         if let Some(event) = self.events.pop_front() {
             let component = self.graph.node_weight_mut(event.component)
                 .expect("Node must have Component");
-            let output_signal = component.get_output(event.output);
 
-            let mut neighbors = self.graph.neighbors_directed(event.component, Outgoing).detach();
+            match component {
+                Component::Logic(logic) => {
 
-            while let Some((edge, node)) = neighbors.next(&self.graph) {
-                let wire = *self.graph.edge_weight(edge).expect("Edge must have Wire");
-                
-                if wire.input() == event.output {
-                    let target = self.graph.node_weight_mut(node).expect("Node must have Component");
-                    target.set_input(wire.output(), output_signal);
-                    let change_events: Vec<_> = target.evaluate_outputs(wire.output())
-                        .iter()
-                        .map(|&changed_output| Event {
-                            component: node,
-                            output: changed_output
-                        }).collect();
-                    
-                    self.events.append(&mut change_events.into());
-                }
+                    let output_signal = logic.get_output(event.output);
+
+                    let mut neighbors = self.graph.neighbors_directed(event.component, Outgoing).detach();
+        
+                    while let Some((edge, node)) = neighbors.next(&self.graph) {
+                        let wire = *self.graph.edge_weight(edge).expect("Edge must have Wire");
+                        
+                        if wire.input() == event.output {
+                            let target = self.graph.node_weight_mut(node)
+                                .expect("Node must have Component");
+
+                            match target {
+                                Component::Logic(target_logic) => {
+                                    target_logic.set_input(wire.output(), output_signal);
+                                    let change_events: Vec<_> = target_logic.evaluate_outputs(wire.output())
+                                        .iter()
+                                        .map(|&changed_output| Event {
+                                            component: node,
+                                            output: changed_output
+                                        }).collect();
+
+                                        dbg!(target_logic);
+                                    
+                                    self.events.append(&mut change_events.into());
+                                },
+                                Component::Input(_) => todo!(),
+                            }
+                            
+                        }
+                    }
+                },
+                Component::Input(input) => {
+
+                    let output_signal = input.get_value();
+
+                    let mut neighbors = self.graph.neighbors_directed(event.component, Outgoing).detach();
+        
+                    while let Some((edge, node)) = neighbors.next(&self.graph) {
+                        let wire = *self.graph.edge_weight(edge).expect("Edge must have Wire");
+                        
+                        if wire.input() == event.output {
+                            let target = self.graph.node_weight_mut(node)
+                                .expect("Node must have Component");
+
+                            match target {
+                                Component::Logic(target_logic) => {
+                                    target_logic.set_input(wire.output(), output_signal);
+                                    let change_events: Vec<_> = target_logic.evaluate_outputs(wire.output())
+                                        .iter()
+                                        .map(|&changed_output| Event {
+                                            component: node,
+                                            output: changed_output
+                                        }).collect();
+                                    
+                                    dbg!(target_logic);
+
+                                    self.events.append(&mut change_events.into());
+                                },
+                                Component::Input(_) => todo!(),
+                            }
+                            
+                        }
+                    }
+                },
             }
         }
     }

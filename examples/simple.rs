@@ -3,12 +3,17 @@ use logical::simulator::*;
 
 fn main() {
     let mut simulator = Simulator::new();
-    let component = Component::new();
 
-    let comp0 = simulator.add_component(component);
-    let comp1 = simulator.add_component(Component::new());
+    let comp0 = simulator.add_component(Component::Input(Input::new()));
+    let comp1 = simulator.add_component(Component::Logic(Logic::new_and(2)));
+    let comp2 = simulator.add_component(Component::Input(Input::new()));
 
-    let wire = simulator.add_wire(comp0, comp1, Wire::new(0, 0));
+    let wire0 = simulator.add_wire(comp0, comp1, Wire::new(0, 0));
+    let wire1 = simulator.add_wire(comp2, comp1, Wire::new(0, 1));
 
+    simulator.set_input(comp0, Signal::High);
+    simulator.set_input(comp2, Signal::High);
+
+    simulator.step();
     simulator.step();
 }
