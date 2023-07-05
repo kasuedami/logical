@@ -8,8 +8,8 @@ fn main() {
     let comp1 = simulator.add_component(Component::Logic(Logic::new_and(2)));
     let comp2 = simulator.add_component(Component::Input(Input::new()));
 
-    let wire0 = simulator.add_wire(comp0, comp1, Wire::new(0, 0));
-    let wire1 = simulator.add_wire(comp2, comp1, Wire::new(0, 1));
+    simulator.add_wire(comp0, comp1, Wire::new(0, 0));
+    simulator.add_wire(comp2, comp1, Wire::new(0, 1));
 
     simulator.set_input(comp0, Signal::High);
     simulator.set_input(comp2, Signal::High);
