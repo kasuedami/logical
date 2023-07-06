@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, fmt};
 
 use petgraph::prelude::*;
 
@@ -10,6 +10,15 @@ type WireIndex = EdgeIndex;
 pub struct Event {
     component: ComponentIndex,
     output: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct UnstableError;
+
+impl fmt::Display for UnstableError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Simulation is unstable")
+    }
 }
 
 pub struct Simulator {
@@ -128,5 +137,22 @@ impl Simulator {
                 },
             }
         }
+    }
+
+    pub fn step_until_stable(&mut self, limit: usize) -> Result<usize, UnstableError> {
+        let mut iteration = 0;
+        
+        while !self.events.is_empty() {
+
+            if iteration < limit {
+                iteration += 1;
+            } else {
+                return Err(UnstableError);
+            }
+
+            self.step();
+        }
+
+        Ok(iteration)
     }
 }

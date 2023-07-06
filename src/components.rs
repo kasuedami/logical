@@ -59,6 +59,7 @@ impl Wire {
 pub enum Operation {
     And(Vec<usize>),
     Or(Vec<usize>),
+    Nand(Vec<usize>),
 }
 
 impl Operation {
@@ -66,6 +67,7 @@ impl Operation {
         match self {
             Operation::And(inputs) => inputs,
             Operation::Or(inputs) => inputs,
+            Operation::Nand(inputs) => inputs,
         }
     }
 
@@ -97,6 +99,19 @@ impl Operation {
 
                 out
             },
+            Operation::Nand(input_indices) => {
+                if input_indices.len() != inputs.len() {
+                    panic!("Wrong number of inputs passed in")
+                }
+
+                for input in inputs {
+                    if input == Signal::Low {
+                        return Signal::High;
+                    }
+                }
+
+                Signal::Low
+            },
         }
     }
 }
@@ -109,6 +124,10 @@ pub enum Component {
 impl Component {
     pub fn new_and(inputs: usize) -> Self {
         Self::Logic(Logic::new_and(inputs))
+    }
+
+    pub fn new_nand(inputs: usize) -> Self {
+        Self::Logic(Logic::new_nand(inputs))
     }
 }
 
@@ -126,6 +145,10 @@ impl Logic {
 
     pub fn new_and(inputs: usize) -> Self {
         Self { inputs: vec![Signal::Low; inputs], outputs: vec![Signal::Low; 1], operations: vec![Operation::And((0..inputs).collect()); 1] }
+    }
+
+    pub fn new_nand(inputs: usize) -> Self {
+        Self { inputs: vec![Signal::Low; inputs], outputs: vec![Signal::Low; 1], operations: vec![Operation::Nand((0..inputs).collect()); 1] }
     }
 
     pub fn evaluate_outputs(&mut self, changed_input: usize) -> Vec<usize> {
