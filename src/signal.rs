@@ -86,6 +86,10 @@ pub struct ObservableSignal {
 }
 
 impl ObservableSignal {
+    pub fn new() -> Self {
+        Self { signal: Self::inital_value(), observers: vec![] }
+    }
+
     pub fn set_signal(&mut self, value: Signal) {
         self.signal = value;
         self.notify_has_changed();
@@ -99,5 +103,9 @@ impl ObservableSignal {
         for observer in &mut self.observers {
             observer.as_mut().has_changed();
         }
+    }
+
+    pub fn inital_value() -> Signal {
+        Signal::Low
     }
 }

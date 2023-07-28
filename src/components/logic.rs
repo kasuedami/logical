@@ -8,14 +8,27 @@ struct Base {
     output: ObservableSignal,
 }
 
-struct Logic {
+pub struct Logic {
     base: Base,
-    fucntion: Function,
+    function: Function,
+}
+
+impl Logic {
+    pub fn new(function: Function) -> Self {
+        Self {
+            base: Base {
+                inputs: vec![],
+                value: ObservableSignal::inital_value(),
+                output: ObservableSignal::new()
+            },
+            function
+        }
+    }
 }
 
 impl Node for Logic {
     fn read_inputs(&mut self) {
-        self.base.value = self.fucntion.calculate(self.base.inputs.iter().map(|v| v.get_signal()).collect())
+        self.base.value = self.function.calculate(self.base.inputs.iter().map(|v| v.get_signal()).collect())
     }
 
     fn write_inputs(&mut self) {
@@ -23,7 +36,7 @@ impl Node for Logic {
     }
 }
 
-enum Function {
+pub enum Function {
     And,
     Or,
     XOr,
