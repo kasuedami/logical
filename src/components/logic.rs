@@ -26,10 +26,51 @@ impl Node for Logic {
 enum Function {
     And,
     Or,
+    XOr,
+    NAnd,
+    NOr,
+    XNOr,
 }
 
 impl Function {
     pub fn calculate(&self, inputs: Vec<Signal>) -> Signal {
-        todo!()
+        match self {
+            Function::And => and(inputs),
+            Function::Or => or(inputs),
+            Function::XOr => xor(inputs),
+            Function::NAnd => !and(inputs),
+            Function::NOr => !or(inputs),
+            Function::XNOr => !xor(inputs),
+        }
     }
+}
+
+fn and(inputs: Vec<Signal>) -> Signal {
+    let mut r = Signal::High;
+
+    for input in inputs {
+        r &= input;
+    }
+
+    r
+}
+
+fn or(inputs: Vec<Signal>) -> Signal {
+    let mut r = Signal::Low;
+
+    for input in inputs {
+        r |= input;
+    }
+
+    r
+}
+
+fn xor(inputs: Vec<Signal>) -> Signal {
+    let mut r = Signal::Low;
+
+    for input in inputs {
+        r ^= input;
+    }
+
+    r
 }

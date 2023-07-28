@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitOr};
+use std::ops::{BitAnd, BitOr, BitAndAssign, BitOrAssign, Not, BitXor, BitXorAssign};
 
 use crate::components::Observer;
 
@@ -8,6 +8,18 @@ pub enum Signal {
     Low,
     #[default]
     Undefined,
+}
+
+impl Not for Signal {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Signal::High => Signal::Low,
+            Signal::Low => Signal::High,
+            Signal::Undefined => Signal::Undefined,
+        }
+    }
 }
 
 impl BitAnd for Signal {
@@ -23,6 +35,12 @@ impl BitAnd for Signal {
     }
 }
 
+impl BitAndAssign for Signal {
+    fn bitand_assign(&mut self, rhs: Self) {
+        *self = *self & rhs;
+    }
+}
+
 impl BitOr for Signal {
     type Output = Self;
 
@@ -33,6 +51,32 @@ impl BitOr for Signal {
             (Signal::High, _) => Signal::High,
             (_, _) => Signal::Undefined,
         }
+    }
+}
+
+impl BitOrAssign for Signal {
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = *self | rhs;
+    }
+}
+
+impl BitXor for Signal {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Signal::High, Signal::Low) => Signal::High,
+            (Signal::Low, Signal::High) => Signal::High,
+            (Signal::Low, Signal::Low) => Signal::Low,
+            (Signal::High, Signal::High) => Signal::Low,
+            (_, _) => Signal::Undefined,
+        }
+    }
+}
+
+impl BitXorAssign for Signal {
+    fn bitxor_assign(&mut self, rhs: Self) {
+        *self = *self ^ rhs;
     }
 }
 
